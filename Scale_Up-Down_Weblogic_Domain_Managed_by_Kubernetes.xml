@@ -1,0 +1,40 @@
+<joblist>
+  <job>
+    <context>
+      <options preserveOrder='true'>
+        <option name='taglabel' required='true'>
+          <description>Provide Tag Label for creating weblogic domain ,it can be same as your domainUID</description>
+          <label>Tag Label</label>
+        </option>
+        <option name='namespace' required='true'>
+          <description>Use namespace which is created while setting up operator for domain in Step 1</description>
+          <label>Domain Namespace</label>
+        </option>
+        <option name='DomainUid' required='true'>
+          <description>Provide Unique Weblogic Domain ID</description>
+          <label>Domain UID</label>
+        </option>
+        <option name='ManagedServers' required='true' value='2'>
+          <description>Provide Initial managed server counts or Replicas you want</description>
+          <label>Number of Managed Servers Count</label>
+        </option>
+      </options>
+    </context>
+    <defaultTab>nodes</defaultTab>
+    <description>Scale Up-Down Weblogic Managed Server</description>
+    <executionEnabled>true</executionEnabled>
+    <id>c358cfb8-e767-4378-9134-8af88f70c471</id>
+    <loglevel>INFO</loglevel>
+    <name>Scale Up-Down Weblogic Domain Managed by Kubernetes</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <plugins />
+    <scheduleEnabled>true</scheduleEnabled>
+    <sequence keepgoing='false' strategy='node-first'>
+      <command>
+        <description>Scale Up/Down WLS Domain and Cluster</description>
+        <exec>python -u /home/rundeck/mwrundeck/scalewls12cver1.0.py ${option.taglabel} ${job.username} ${option.DomainUid} ${option.namespace} ${option.ManagedServers}</exec>
+      </command>
+    </sequence>
+    <uuid>c358cfb8-e767-4378-9134-8af88f70c471</uuid>
+  </job>
+</joblist>
