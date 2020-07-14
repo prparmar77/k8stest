@@ -1,0 +1,136 @@
+import com.cloudbees.plugins.credentials.CredentialsProvider
+pipeline {
+    agent  any
+    environment {
+       PROJECTID = '4'
+    }
+    stages {
+        stage ('cicdapps-Checkout') {
+            steps {
+ 	 checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'cicdcreds', url: 'http://129.213.182.78:12000/devops/cicdapps.git']]]) 
+	    }
+        }
+        stage('Build') { 
+            steps {
+                withMaven(maven: 'mavenbca') { 
+ 			
+ 				sh "mvn -f admin/pom.xml clean compile package " 
+				
+				}
+				script {
+				pom = readMavenPom file: 'admin/pom.xml'
+				ARTIFACTID = pom.artifactId
+				VERSION = pom.version
+				PACKAGING = pom.packaging
+				echo "ARTIFACTID: ${ARTIFACTID}"
+				echo "VERSION: ${VERSION}"			
+				echo "PACKAGING: ${PACKAGING}"
+				}
+ 		    }		// Shell build step
+        }
+		stage ('Promotion') {
+		    steps {
+                script {		    
+					def inputArtifactid
+                    def inputVersion
+					def inputPackage
+
+                    // Get the input
+                    def userInput = input(
+                            id: 'userInput', message: 'Enter Artifact Id:?',
+                            parameters: [
+
+                                    string(defaultValue: 'None',
+                                            description: 'Artifactid',
+                                            name: 'ARTIFACTID'),
+                                    string(defaultValue: 'None',
+                                            description: 'Version',
+                                            name: 'VERSION'),
+									string(defaultValue: 'None',
+                                            description: 'Packaging',
+                                            name: 'PACKAGING'),
+											
+                            ])
+
+                    // Save to variables. Default to empty string if not found.
+                    inputArtifactid = userInput.ARTIFACTID?:''
+                    inputVersion = userInput.VERSION?:''
+                    inputPackage = userInput.PACKAGING?:''
+					VERSION = inputVersion
+                }
+				script {
+                // PROJECTID = params.PROJECTID
+
+                def credsList = com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials(com.cloudbees.plugins.credentials.Credentials.class,Jenkins.instance,null,null)
+                def creds = credsList.findResult { it.id == "root" ? it : null }
+                TOKEN = creds.apiToken?:''
+				sh """
+                sudo cp ${WORKSPACE}/admin/target/${ARTIFACTID}-0.0.1.${PACKAGING} /var/www/html/files/${ARTIFACTID}-${VERSION}.${PACKAGING}
+				curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN:  ${TOKEN}" --data '{ "name": "New release", "tag_name": "'"${VERSION}"'", "description": "BCA Admin App Release", "ref": "admin-br","assets": { "links": [{ "name": "cicdappsmicro", "url": "'"http://129.213.182.78:14000/files/${ARTIFACTID}-${VERSION}.${PACKAGING}"'" }] } }' --request POST http://129.213.182.78:12000/api/v4/projects/${PROJECTID}/releases
+				"""
+                
+				}
+                
+		    }
+		}
+        stage ('Deploy') {
+            steps {
+                script {
+                    def inputAppHost
+                    def inputAppPort
+
+                    def userInput = input(
+                            id: 'userInput', message: 'Enter App Server Information:?',
+                            parameters: [
+
+                                    string(defaultValue: 'http://129.213.182.78',
+                                            description: 'Application Server Host',
+                                            name: 'APPHOST'),
+                                    string(defaultValue: '7001',
+                                            description: 'Application Server Port',
+                                            name: 'APPPORT'),
+																
+                            ])
+                
+                
+                inputAppHost = userInput.APPHOST?:''
+                inputAppPort = userInput.APPPORT?:''
+                APPHOST = inputAppHost
+                APPPORT = inputAppPort
+                }
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'wlscredential', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    sh """    
+                    echo ${APPHOST}
+                    echo ${APPPORT}
+                    cp /var/www/html/files/${ARTIFACTID}-${VERSION}.${PACKAGING} .
+                    curl -v --user $USERNAME:$PASSWORD -H X-Requested-By:MyClient -H Accept:application/json -H Content-Type:multipart/form-data -F "model={ name: '${ARTIFACTID}-${VERSION}.${PACKAGING}', targets: [ { identity: [ 'servers' , 'AdminServer' ] } ] }" -F "sourcePath=@/var/www/html/files/${ARTIFACTID}-${VERSION}.${PACKAGING}" -H "Prefer:respond-async" -X POST ${APPHOST}:${APPPORT}/management/weblogic/latest/edit/appDeployments
+                    """
+                    }
+                }           
+            }
+        }
+        stage ('Test') {
+            steps {
+                script {
+                sh """
+                export PATH=$PATH:/usr/local/bin
+                python ${WORKSPACE}/admin/autoadmintest.py ${APPHOST}:${APPPORT} ${ARTIFACTID}-${VERSION}
+                """
+                }
+            }
+        }
+        stage ('DevSecOps') {
+                steps {
+                    script {
+                    echo env.JOB_NAME
+                    echo env.BUILD_NUMBER
+                    BLDNAME = env.JOB_NAME
+                    BLDNUMBER = env.BUILD_NUMBER
+                    build job: 'bcaadmin-secops', parameters: [string(name: 'ARTIFACTID', value: ARTIFACTID ),string(name: 'VERSION', value: VERSION ),string(name: 'APPSERVER', value: APPHOST),string(name: 'PORT', value: APPPORT),string(name: 'UPSTREAM_BUILD_NAME', value: BLDNAME),string(name: 'UPSTREAM_BUILD_NUMBER', value: BLDNUMBER)]
+                    }
+                }
+        }
+        
+    }
+}
