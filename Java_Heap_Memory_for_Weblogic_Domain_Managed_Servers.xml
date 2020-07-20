@@ -1,0 +1,40 @@
+<joblist>
+  <job>
+    <context>
+      <options preserveOrder='true'>
+        <option name='taglabel' required='true'>
+          <description>Provide Tag Label for creating weblogic domain ,it can be same as your domainUID</description>
+          <label>Tag Label</label>
+        </option>
+        <option name='namespace' required='true'>
+          <description>Use namespace which is created while setting up operator for domain in Step 1</description>
+          <label>Domain Namespace</label>
+        </option>
+        <option name='DomainUid' required='true'>
+          <description>Provide Unique Weblogic Domain ID</description>
+          <label>Domain UID</label>
+        </option>
+        <option name='JavaHeapMemory' required='true' value='-Djava.security.egd=file:/dev/./urandom -Xms512m -Xmx1024m'>
+          <description>Allocate Java Heap Memory Parameters to Managed Server for given domain in Namespace ,note it should not exceed memory allocated to POD</description>
+          <label>Java Heap Memory Parameters</label>
+        </option>
+      </options>
+    </context>
+    <defaultTab>nodes</defaultTab>
+    <description>Provide Java Heap Memory to be allocated to Java of Managed Server </description>
+    <executionEnabled>true</executionEnabled>
+    <id>07f2190f-efb6-42d1-b09b-560cb492602d</id>
+    <loglevel>INFO</loglevel>
+    <name>Java Heap Memory for Weblogic Domain Managed Servers</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <plugins />
+    <scheduleEnabled>true</scheduleEnabled>
+    <sequence keepgoing='false' strategy='node-first'>
+      <command>
+        <description>Allocate Heap Memory for WLS Domain Managed Servers</description>
+        <exec>python -u /home/rundeck/mwrundeck/updateHeapMemwls12cver1.0.py ${option.taglabel} ${job.username} ${option.DomainUid} ${option.namespace} ${option.JavaHeapMemory}</exec>
+      </command>
+    </sequence>
+    <uuid>07f2190f-efb6-42d1-b09b-560cb492602d</uuid>
+  </job>
+</joblist>

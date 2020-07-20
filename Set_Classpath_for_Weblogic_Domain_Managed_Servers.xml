@@ -1,0 +1,40 @@
+<joblist>
+  <job>
+    <context>
+      <options preserveOrder='true'>
+        <option name='taglabel' required='true'>
+          <description>Provide Tag Label for creating weblogic domain ,it can be same as your domainUID</description>
+          <label>Tag Label</label>
+        </option>
+        <option name='namespace' required='true'>
+          <description>Use namespace which is created while setting up operator for domain in Step 1</description>
+          <label>Domain Namespace</label>
+        </option>
+        <option name='DomainUid' required='true'>
+          <description>Provide Unique Weblogic Domain ID</description>
+          <label>Domain UID</label>
+        </option>
+        <option name='classpath' required='true'>
+          <description>Classpath is set for given domain in Namespace</description>
+          <label>Set Classpath for Domain</label>
+        </option>
+      </options>
+    </context>
+    <defaultTab>nodes</defaultTab>
+    <description>Set Classpath for Weblogic Domain Managed Servers</description>
+    <executionEnabled>true</executionEnabled>
+    <id>f36e6744-0f48-4d1f-8e58-f695fdf781d8</id>
+    <loglevel>INFO</loglevel>
+    <name>Set Classpath for Weblogic Domain Managed Servers</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <plugins />
+    <scheduleEnabled>true</scheduleEnabled>
+    <sequence keepgoing='false' strategy='node-first'>
+      <command>
+        <description>Set Classpath for WLS Domain Managed Servers in given Namespace</description>
+        <exec>python -u /home/rundeck/mwrundeck/updateClasspathwls12cver1.0.py  ${option.taglabel} ${job.username} ${option.DomainUid} ${option.namespace} ${option.classpath}</exec>
+      </command>
+    </sequence>
+    <uuid>f36e6744-0f48-4d1f-8e58-f695fdf781d8</uuid>
+  </job>
+</joblist>

@@ -1,0 +1,69 @@
+<joblist>
+  <job>
+    <context>
+      <options preserveOrder='true'>
+        <option name='taglabel' required='true'>
+          <description>Provide Tag Label for creating weblogic domain ,it can be same as your domainUID</description>
+          <label>Tag Label</label>
+        </option>
+        <option name='namespace' required='true'>
+          <description>Use namespace which is created while setting up operator for domain in Step 1</description>
+          <label>Domain Namespace</label>
+        </option>
+        <option name='DomainUid' required='true'>
+          <description>Provide Unique Weblogic Domain ID</description>
+          <label>Domain UID</label>
+        </option>
+        <option name='BaseWeblogicImage' required='true' value='iad.ocir.io/oci_core_emea_acs_petitpierre/oracle/weblogic:12.2.1.4'>
+          <description>Provide Weblogic Base Image that needs to be used for building custom domain image</description>
+          <label>Base Weblogic Domain in Home Image</label>
+        </option>
+        <option name='WeblogicImage' required='true' value='iad.ocir.io/oci_core_emea_acs_petitpierre/devops/weblogic:12.2.1.4'>
+          <description>This provides custom build wls image to be used for deploying application</description>
+          <label>Provide Custom Build Weblogic Image Location</label>
+        </option>
+        <option name='ManagedServerCount' required='true' value='5'>
+          <description>Priovide maximum number of managed servers that can be created for this domain</description>
+          <label>Managed Server Count</label>
+        </option>
+        <option name='ManagedServers' required='true' value='2'>
+          <description>Provide Initial managed server counts or Replicas you want</description>
+          <label>Initial Managed Servers Count</label>
+        </option>
+        <option name='weblogicUserName' required='true'>
+          <description>Provide Weblogic User Name</description>
+          <label>Weblogic User Name</label>
+        </option>
+        <option name='weblogicPassword' secure='true' valueExposed='true'>
+          <description>Provide Weblogic Password</description>
+          <label>Weblogic Password</label>
+        </option>
+        <option name='cpulimit' values='250m,500m,1000m,1500m,2000m,2500m,3000m,3500m,4000m' valuesListDelimiter=','>
+          <description>Provide Maximum CPU Limit</description>
+          <label>Max CPU Limit</label>
+        </option>
+        <option name='memlimit' required='true' values='1Gi,2Gi,3Gi,4Gi' valuesListDelimiter=','>
+          <description>Provide Maximum Memory Limit</description>
+          <label>Memory Limit </label>
+        </option>
+      </options>
+    </context>
+    <defaultTab>nodes</defaultTab>
+    <description>Provision Weblogic Domain with default MySql/Oracle Data Source </description>
+    <executionEnabled>true</executionEnabled>
+    <group>Provisioning</group>
+    <id>27b4e59c-960d-4e87-abdb-6fd740a4006d</id>
+    <loglevel>INFO</loglevel>
+    <name>2. Provision Weblogic Domain Managed by Kubernetes</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <plugins />
+    <scheduleEnabled>true</scheduleEnabled>
+    <sequence keepgoing='false' strategy='node-first'>
+      <command>
+        <description>Creating WLS Domain and Cluster</description>
+        <exec>python -u /home/rundeck/mwrundeck/createwls12cver1.0.py ${option.taglabel} ${job.username} ${option.DomainUid} ${option.WeblogicImage} ${option.namespace} ${option.BaseWeblogicImage} ${option.ManagedServerCount} ${option.ManagedServers} ${option.weblogicUserName} ${option.weblogicPassword} ${option.cpulimit} ${option.memlimit}</exec>
+      </command>
+    </sequence>
+    <uuid>27b4e59c-960d-4e87-abdb-6fd740a4006d</uuid>
+  </job>
+</joblist>

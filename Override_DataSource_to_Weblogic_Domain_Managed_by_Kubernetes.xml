@@ -1,0 +1,60 @@
+<joblist>
+  <job>
+    <context>
+      <options preserveOrder='true'>
+        <option name='taglabel' required='true'>
+          <description>Provide Tag Label for creating weblogic domain ,it can be same as your domainUID</description>
+          <label>Tag Label</label>
+        </option>
+        <option name='namespace' required='true'>
+          <description>Use namespace which is created while setting up operator for domain in Step 1</description>
+          <label>Domain Namespace</label>
+        </option>
+        <option name='DomainUid' required='true'>
+          <description>Provide Unique Weblogic Domain ID</description>
+          <label>Domain UID</label>
+        </option>
+        <option name='dataSourceName' required='true'>
+          <description>Provide Data Source Name which needs to be overidden</description>
+          <label>Data Source Name</label>
+        </option>
+        <option name='dataSourceHost' required='true'>
+          <description>Provide Oracle Database Host Name</description>
+          <label>Data Source Host</label>
+        </option>
+        <option name='dataSourePort'>
+          <description>Provide Database Port</description>
+          <label>Data Source Port</label>
+        </option>
+        <option name='dataSourceServiceName'>
+          <description>Provide Data Source Service Name</description>
+          <label>Data Source Service Name</label>
+        </option>
+        <option name='dataSourceUserName' required='true'>
+          <description>Provide Data Source User Name</description>
+          <label>Data Source User Name</label>
+        </option>
+        <option name='dataSourcePassword' required='true' secure='true' valueExposed='true'>
+          <description>Provide Data Source Password</description>
+          <label>Data Source Password</label>
+        </option>
+      </options>
+    </context>
+    <defaultTab>nodes</defaultTab>
+    <description>Overide Data Source to Weblogic Domain</description>
+    <executionEnabled>true</executionEnabled>
+    <id>573a3098-d818-4023-9493-f7f429db144a</id>
+    <loglevel>INFO</loglevel>
+    <name>Override DataSource to Weblogic Domain Managed by Kubernetes</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <plugins />
+    <scheduleEnabled>true</scheduleEnabled>
+    <sequence keepgoing='false' strategy='node-first'>
+      <command>
+        <description>OverRide Data Source to existing WLS Domain and Cluster</description>
+        <exec>python -u /home/rundeck/mwrundeck/overRideDSwls12cver1.0.py ${option.taglabel} ${job.username} ${option.DomainUid} ${option.namespace} ${option.dataSourceName} ${option.dataSourceHost} ${option.dataSourePort} ${option.dataSourceServiceName} ${option.dataSourceUserName} ${option.dataSourcePassword}</exec>
+      </command>
+    </sequence>
+    <uuid>573a3098-d818-4023-9493-f7f429db144a</uuid>
+  </job>
+</joblist>
