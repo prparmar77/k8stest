@@ -10,8 +10,9 @@ kubectl get domains ${1} -n ${2} -o json | jq '.' > /home/opc/wlsk8s/domain-${1}
 
 echo "executing current check on domain"
 
-case `grep -w "CLASSPATH" /home/opc/wlsk8s/domain-$1-$2.json;echo $?` in
-  0)
+grep -w "CLASSPATH" /home/opc/wlsk8s/domain-$1-$2.json
+   if [ $? -eq 0 ]
+   then
     # code if found
    kubectl get domains $1 -n $2 -o json | jq '.spec.serverPod.env[2]'
 
@@ -26,13 +27,12 @@ case `grep -w "CLASSPATH" /home/opc/wlsk8s/domain-$1-$2.json;echo $?` in
    sleep 30s
 
    kubectl wait --timeout=200s --for=condition=ready pod -l weblogic.domainUID=$1 -n $2
-
-    ;;
-  1)
-    # code if not found 
+   exit $?
+   else  
+   # code if not found 
    echo " In Setting CLASSPATH " 
 
-  python /home/opc/wlsk8s/jsonclasspath.py "/home/opc/wlsk8s/domain-${1}-${2}.json"
+   python /home/opc/wlsk8s/jsonclasspath.py "/home/opc/wlsk8s/domain-${1}-${2}.json"
 
    echo "cat /home/opc/wlsk8s/domain-$1-$2.json | jq '.spec.serverPod.env[2].value = \"CLASSPATH\"' | kubectl replace -f -" > tmp-$1-$2-classpath.sh
 
@@ -45,14 +45,6 @@ case `grep -w "CLASSPATH" /home/opc/wlsk8s/domain-$1-$2.json;echo $?` in
    sleep 30s
 
    kubectl wait --timeout=200s --for=condition=ready pod -l weblogic.domainUID=$1 -n $2
-
-    ;;
-  *)
-    # code if an error occurred 
-   echo "Something went wrong in setting classpath"
-   echo $?
-    ;;
-esac
-
-
+   exit $?
+   fi
 
